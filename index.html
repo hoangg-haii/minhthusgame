@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ghép 3 - game cho Vợ</title>
+    <title>Tripple 3 - game cho vợ</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Thêm thư viện Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap');
 
         body {
-            font-family: 'Quicksand', sans-serif;
+            font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background: #fff1f2;
             overflow: hidden;
             touch-action: manipulation;
@@ -52,7 +54,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -60,16 +61,17 @@
             transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s;
             user-select: none;
             border: 2px solid #fb7185;
+            color: #e11d48;
         }
 
         .item.locked {
-            filter: brightness(0.4) grayscale(1);
+            filter: brightness(0.6) grayscale(1);
             cursor: not-allowed;
             opacity: 0.8;
             border-color: #94a3b8;
+            color: #64748b;
         }
 
-        /* Thanh chứa phía dưới */
         .dock-container {
             height: 80px;
             background: #fda4af;
@@ -92,8 +94,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 26px;
             transition: all 0.2s ease;
+            color: #e11d48;
         }
 
         .progress-bar {
@@ -112,17 +114,15 @@
         }
 
         .modal {
-            background: rgba(76, 5, 25, 0.5);
-            backdrop-filter: blur(10px);
+            background: rgba(76, 5, 25, 0.6);
+            backdrop-filter: blur(8px);
         }
 
-        /* Hiệu ứng bay */
         .flying-item {
             position: fixed;
             z-index: 1000;
             pointer-events: none;
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            font-size: 28px;
             background: white;
             border-radius: 12px;
             border: 2px solid #fb7185;
@@ -130,6 +130,15 @@
             align-items: center;
             justify-content: center;
             box-shadow: 0 10px 15px rgba(0,0,0,0.2);
+            color: #e11d48;
+        }
+
+        /* Nút cài đặt xoay khi hover */
+        .settings-btn:hover i {
+            transform: rotate(90deg);
+        }
+        .settings-btn i {
+            transition: transform 0.5s ease;
         }
     </style>
 </head>
@@ -137,14 +146,21 @@
 
     <div class="game-container">
         <!-- Header -->
-        <div class="p-4 flex justify-between items-center">
+        <div class="p-4 flex justify-between items-center relative">
             <div>
-                <h1 class="text-2xl font-black text-pink-600 uppercase">Cute Match 3</h1>
-                <p class="text-[10px] font-bold text-pink-400 uppercase tracking-widest">Cấp độ: <span id="current-level" class="text-pink-600">1</span></p>
+                <h1 class="text-xl font-black text-pink-600 uppercase leading-none">Tripple 3</h1>
+                <p class="text-[10px] font-bold text-pink-400 uppercase tracking-widest">game cho vợ</p>
             </div>
-            <div class="text-right">
-                <p class="text-2xl font-black text-pink-600" id="score">0</p>
-                <p class="text-[10px] font-bold text-gray-400 uppercase">Điểm</p>
+            
+            <div class="flex items-center gap-4">
+                <div class="text-right">
+                    <p class="text-2xl font-black text-pink-600 leading-none" id="score">0</p>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase">Cấp: <span id="current-level">1</span></p>
+                </div>
+                <!-- Nút Cài Đặt -->
+                <button onclick="toggleSettings(true)" class="settings-btn w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center text-pink-500 border-2 border-pink-100 active:scale-90 transition-transform">
+                    <i data-lucide="settings" class="w-6 h-6"></i>
+                </button>
             </div>
         </div>
 
@@ -161,9 +177,7 @@
         </div>
 
         <!-- Dock (Thanh chứa) -->
-        <div class="dock-container" id="dock">
-            <!-- Slots will be here -->
-        </div>
+        <div class="dock-container" id="dock"></div>
 
         <!-- Controls -->
         <div class="p-4 flex gap-3">
@@ -176,17 +190,39 @@
         </div>
     </div>
 
-    <!-- Modals -->
+    <!-- Modal Kết Thúc / Thắng -->
     <div id="game-modal" class="modal fixed inset-0 hidden flex items-center justify-center z-[200]">
         <div class="bg-white p-8 rounded-[32px] text-center max-w-xs w-full shadow-2xl border-4 border-pink-100 mx-4">
             <h2 id="modal-title" class="text-2xl font-black text-pink-600 mb-2">Thắng rồi!</h2>
             <p id="modal-desc" class="text-gray-500 font-medium mb-6">Bạn thật xuất sắc.</p>
-            <button id="modal-btn" class="bg-pink-500 hover:bg-pink-600 text-white w-full py-4 rounded-xl font-black text-lg shadow-lg active:scale-95 transition-transform">TIẾP TỤC</button>
+            <button id="modal-btn" class="bg-pink-500 hover:bg-pink-600 text-white w-full py-4 rounded-xl font-black text-lg shadow-lg active:scale-95 transition-transform uppercase">Tiếp tục</button>
+        </div>
+    </div>
+
+    <!-- Modal Cài Đặt -->
+    <div id="settings-modal" class="modal fixed inset-0 hidden flex items-center justify-center z-[300]">
+        <div class="bg-white p-8 rounded-[32px] text-center max-w-xs w-full shadow-2xl border-4 border-pink-100 mx-4 relative">
+            <button onclick="toggleSettings(false)" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            <div class="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="heart" class="w-8 h-8 text-pink-500 fill-current"></i>
+            </div>
+            <h2 class="text-xl font-black text-gray-700 mb-4 italic">game duii hôngg</h2>
+            <a href="https://www.facebook.com/mt.hoanghai/" target="_blank" class="block w-full bg-blue-500 hover:bg-blue-600 text-white py-4 rounded-xl font-black text-lg shadow-lg active:scale-95 transition-transform mb-2">
+                NHẤN VÀO ĐÂY NÈ
+            </a>
+            <p class="text-[10px] text-gray-400 uppercase font-bold mt-4">Tripple 3 v1.0 - Made with Love</p>
         </div>
     </div>
 
     <script>
-        const emojis = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐦', '🐤', '🦆'];
+        const iconList = [
+            'heart', 'star', 'cherry', 'apple', 'ghost', 'cloud', 
+            'moon', 'sun', 'flame', 'anchor', 'bell', 'cake', 
+            'candy', 'coffee', 'fish', 'flower', 'gem', 'gift'
+        ];
+        
         const board = document.getElementById('game-board');
         const dockEl = document.getElementById('dock');
         const scoreEl = document.getElementById('score');
@@ -251,32 +287,27 @@
             const maxW = board.clientWidth - itemSize - padding;
             const maxH = board.clientHeight - itemSize - padding;
 
-            // Tạo toàn bộ danh sách emoji (luôn đủ bộ 3)
-            let emojiPool = [];
+            let iconPool = [];
             for (let t = 0; t < totalTriples; t++) {
-                const emoji = emojis[Math.floor(Math.random() * emojis.length)];
-                emojiPool.push(emoji, emoji, emoji);
+                const icon = iconList[Math.floor(Math.random() * iconList.length)];
+                iconPool.push(icon, icon, icon);
             }
-            // Xáo trộn pool
-            emojiPool.sort(() => Math.random() - 0.5);
+            iconPool.sort(() => Math.random() - 0.5);
 
-            // Phân bổ ngẫu nhiên vào các lớp (không cần chẵn lẻ trong 1 lớp)
             let currentPoolIdx = 0;
             for(let l = 0; l < layersCount; l++) {
-                // Lớp càng trên (l nhỏ) càng có nhiều icon hơn hoặc phân bổ đều
                 let countInLayer;
                 if (l === layersCount - 1) {
-                    countInLayer = emojiPool.length - currentPoolIdx;
+                    countInLayer = iconPool.length - currentPoolIdx;
                 } else {
-                    // Phân bổ ngẫu nhiên nhưng đảm bảo không hết pool quá sớm
-                    const remaining = emojiPool.length - currentPoolIdx;
+                    const remaining = iconPool.length - currentPoolIdx;
                     countInLayer = Math.floor(Math.random() * (remaining / (layersCount - l))) + 3;
                 }
 
-                for (let i = 0; i < countInLayer && currentPoolIdx < emojiPool.length; i++) {
+                for (let i = 0; i < countInLayer && currentPoolIdx < iconPool.length; i++) {
                     state.items.push({
                         id: Math.random().toString(36).substr(2, 9),
-                        emoji: emojiPool[currentPoolIdx++],
+                        icon: iconPool[currentPoolIdx++],
                         layer: l,
                         x: padding + Math.random() * maxW,
                         y: padding + Math.random() * maxH,
@@ -289,44 +320,52 @@
             startTimer();
         }
 
+        function createIconElement(iconName, size = 28) {
+            const iconWrapper = document.createElement('i');
+            iconWrapper.setAttribute('data-lucide', iconName);
+            iconWrapper.style.width = size + 'px';
+            iconWrapper.style.height = size + 'px';
+            return iconWrapper;
+        }
+
         function renderDock() {
             dockEl.innerHTML = '';
             for (let i = 0; i < DOCK_SIZE; i++) {
                 const slot = document.createElement('div');
                 slot.className = 'dock-slot';
                 if (state.dock[i]) {
-                    slot.innerText = state.dock[i];
+                    const icon = createIconElement(state.dock[i], 24);
+                    slot.appendChild(icon);
                     slot.style.background = "white";
                     slot.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
                     slot.style.border = "2px solid #fb7185";
                 }
                 dockEl.appendChild(slot);
             }
+            lucide.createIcons();
         }
 
         function renderBoard() {
             const activeLayer = getActiveLayer();
             const currentItems = state.items.filter(i => !i.removed);
 
-            // Xử lý DOM
             const existingEls = board.querySelectorAll('.item');
             const existingIds = Array.from(existingEls).map(el => el.dataset.id);
             
-            // Xóa phần tử cũ
             existingIds.forEach(id => {
                 if (!currentItems.find(i => i.id === id)) {
                     board.querySelector(`[data-id="${id}"]`)?.remove();
                 }
             });
 
-            // Vẽ / Cập nhật phần tử
             currentItems.sort((a,b) => b.layer - a.layer).forEach(item => {
                 let el = board.querySelector(`[data-id="${item.id}"]`);
                 if (!el) {
                     el = document.createElement('div');
                     el.className = 'item';
                     el.dataset.id = item.id;
-                    el.innerText = item.emoji;
+                    const icon = createIconElement(item.icon, 30);
+                    el.appendChild(icon);
                     board.appendChild(el);
                 }
                 
@@ -343,6 +382,7 @@
                 el.onclick = () => handleItemClick(item, activeLayer, el);
             });
 
+            lucide.createIcons();
             if(state.items.every(i => i.removed) && state.dock.length === 0) winGame();
         }
 
@@ -359,43 +399,38 @@
             state.isProcessing = true;
             playSound('click');
 
-            // Tính toán vị trí bay
             const rect = originalEl.getBoundingClientRect();
             
-            // Tìm vị trí chèn trong dock (nhóm các hình giống nhau)
-            let insertIdx = state.dock.lastIndexOf(item.emoji);
+            let insertIdx = state.dock.lastIndexOf(item.icon);
             if (insertIdx === -1) insertIdx = state.dock.length;
             else insertIdx++;
 
-            // Tạo element bay để không làm gián đoạn render board
             const flyer = document.createElement('div');
             flyer.className = 'flying-item';
-            flyer.innerText = item.emoji;
+            const flyerIcon = createIconElement(item.icon, 30);
+            flyer.appendChild(flyerIcon);
             flyer.style.left = rect.left + 'px';
             flyer.style.top = rect.top + 'px';
             flyer.style.width = rect.width + 'px';
             flyer.style.height = rect.height + 'px';
             document.body.appendChild(flyer);
+            lucide.createIcons();
 
-            // Đánh dấu đã xóa ngay lập tức
             item.removed = true;
             originalEl.style.visibility = 'hidden';
 
-            // Cập nhật mảng dock ngay để tính toán slot
-            state.dock.splice(insertIdx, 0, item.emoji);
-            renderDock(); // Render các ô trống trước
+            state.dock.splice(insertIdx, 0, item.icon);
+            renderDock();
 
-            // Lấy tọa độ đích (ô trong dock)
             const targetSlot = dockEl.children[insertIdx];
             const targetRect = targetSlot.getBoundingClientRect();
 
-            // Thực hiện bay
             requestAnimationFrame(() => {
                 flyer.style.left = targetRect.left + 'px';
                 flyer.style.top = targetRect.top + 'px';
                 flyer.style.width = targetRect.width + 'px';
                 flyer.style.height = targetRect.height + 'px';
-                flyer.style.transform = 'scale(1)';
+                flyer.style.transform = 'scale(0.8)';
             });
 
             setTimeout(() => {
@@ -416,17 +451,17 @@
 
         function checkMatch3() {
             const counts = {};
-            state.dock.forEach(emoji => counts[emoji] = (counts[emoji] || 0) + 1);
+            state.dock.forEach(iconName => counts[iconName] = (counts[iconName] || 0) + 1);
             
-            for (let emoji in counts) {
-                if (counts[emoji] >= 3) {
+            for (let iconName in counts) {
+                if (counts[iconName] >= 3) {
                     playSound('match');
                     state.score += 30;
                     scoreEl.innerText = state.score;
                     
                     let removedCount = 0;
                     state.dock = state.dock.filter(e => {
-                        if (e === emoji && removedCount < 3) {
+                        if (e === iconName && removedCount < 3) {
                             removedCount++;
                             return false;
                         }
@@ -454,7 +489,8 @@
                 const randomItem = activeItems[Math.floor(Math.random() * activeItems.length)];
                 const els = document.querySelectorAll('.item:not(.locked)');
                 els.forEach(el => {
-                    if(el.innerText === randomItem.emoji) {
+                    const iconEl = el.querySelector('[data-lucide]');
+                    if(iconEl && iconEl.getAttribute('data-lucide') === randomItem.icon) {
                         el.style.boxShadow = "0 0 20px #fbbf24";
                         el.style.borderColor = "#fbbf24";
                         setTimeout(() => {
@@ -469,11 +505,12 @@
         function shuffleBoard() {
             const activeLayer = getActiveLayer();
             const remainingInLayer = state.items.filter(i => !i.removed && i.layer === activeLayer);
-            const emojisRem = remainingInLayer.map(i => i.emoji).sort(() => Math.random() - 0.5);
+            const iconsRem = remainingInLayer.map(i => i.icon).sort(() => Math.random() - 0.5);
             let idx = 0;
             state.items.forEach(i => {
-                if(!i.removed && i.layer === activeLayer) i.emoji = emojisRem[idx++];
+                if(!i.removed && i.layer === activeLayer) i.icon = iconsRem[idx++];
             });
+            board.querySelectorAll('.item').forEach(el => el.innerHTML = '');
             renderBoard();
         }
 
@@ -513,7 +550,16 @@
             document.getElementById('game-modal').classList.add('hidden');
         }
 
-        window.onload = initLevel;
+        function toggleSettings(show) {
+            const modal = document.getElementById('settings-modal');
+            if (show) modal.classList.remove('hidden');
+            else modal.classList.add('hidden');
+        }
+
+        window.onload = () => {
+            initLevel();
+            lucide.createIcons();
+        };
     </script>
 </body>
 </html>
